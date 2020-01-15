@@ -14,6 +14,9 @@ Table of Contents
     * [resty.kong.tls.disable\_session\_reuse](#restykongtlsdisable_session_reuse)
     * [resty.kong.tls.get\_full\_client\_certificate\_chain](#restykongtlsget_full_client_certificate_chain)
     * [resty.kong.tls.set\_upstream\_cert\_and\_key](#restykongtlsset_upstream_cert_and_key)
+    * [resty.kong.tls.set\_upstream\_trusted\_store](#restykongtlsset_upstream_trusted_store)
+    * [resty.kong.tls.set\_upstream\_ssl\_verify](#restykongtlsset_upstream_ssl_verify)
+    * [resty.kong.tls.set\_upstream\_ssl\_verify\_depth](#restykongtlsset_upstream_ssl_verify_depth)
     * [resty.kong.tls.disable\_proxy\_ssl](#restykongtlsdisable_proxy_ssl)
 * [License](#license)
 
@@ -128,6 +131,82 @@ functions such as [ngx.ssl.parse\_pem\_priv\_key](https://github.com/openresty/l
 On success, this function returns `true` and future handshakes with upstream servers
 will always use the provided client certificate. Otherwise `nil` and a string describing the error
 will be returned.
+
+This function can be called multiple times in the same request. Later calls override
+previous ones.
+
+[Back to TOC](#table-of-contents)
+
+resty.kong.tls.set\_upstream\_trusted\_store
+--------------------------------------------
+**syntax:** *ok, err = resty.kong.tls.set\_upstream\_trusted\_store(store)*
+
+**context:** *rewrite_by_lua&#42;, access_by_lua&#42;, balancer_by_lua&#42;*
+
+**subsystems:** *http*
+
+Set upstream ssl verification trusted store of current request. Global setting set by
+`proxy_ssl_trusted_certificate` will be overrided.
+
+`store` is a `X509_STORE*` cdata that can be created by
+[resty.openssl.x509.store.new](https://github.com/fffonion/lua-resty-openssl#storenew).
+
+On success, this function returns `true` and future handshakes with upstream servers
+will be verified with given store. Otherwise `nil` and a string describing the
+error will be returned.
+
+This function can be called multiple times in the same request. Later calls override
+previous ones.
+
+Example:
+```lua
+local tls = require("resty.kong.tls")
+local x509 = require("resty.openssl.x509")
+local store = require("resty.openssl.x509.store")
+local st = assert(store.new())
+assert(st:add([[-----BEGIN CERTIFICATE-----
+...
+-----END CERTIFICATE-----]]))
+-- OR
+-- assert(st:use_default()) to load default CA bundle
+tls.set_upstream_trusted_store(st.ctx)
+tls.set_upstream_ssl_verify(true)
+```
+
+[Back to TOC](#table-of-contents)
+
+resty.kong.tls.set\_upstream\_ssl\_verify
+--------------------------------------------
+**syntax:** *ok, err = resty.kong.tls.set\_upstream\_ssl\_verify(verify)*
+
+**context:** *rewrite_by_lua&#42;, access_by_lua&#42;, balancer_by_lua&#42;*
+
+**subsystems:** *http*
+
+Set upstream ssl verification enablement of current request. Global setting set by
+`proxy_ssl_verify` will be overrided.
+
+On success, this function returns `true`. Otherwise `nil` and a string
+describing the error will be returned.
+
+This function can be called multiple times in the same request. Later calls override
+previous ones.
+
+[Back to TOC](#table-of-contents)
+
+resty.kong.tls.set\_upstream\_ssl\_verify\_depth
+--------------------------------------------
+**syntax:** *ok, err = resty.kong.tls.set\_upstream\_ssl\_verify\_depth(depth)*
+
+**context:** *rewrite_by_lua&#42;, access_by_lua&#42;, balancer_by_lua&#42;*
+
+**subsystems:** *http*
+
+Set upstream ssl verification depth of current request. Global setting set by
+`proxy_ssl_verify_depth` will be overrided.
+
+On success, this function returns `true`. Otherwise `nil` and a string
+describing the error will be returned.
 
 This function can be called multiple times in the same request. Later calls override
 previous ones.
