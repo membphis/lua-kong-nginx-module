@@ -163,12 +163,15 @@ Example:
 local tls = require("resty.kong.tls")
 local x509 = require("resty.openssl.x509")
 local store = require("resty.openssl.x509.store")
-local st = assert(store.new())
-assert(st:add([[-----BEGIN CERTIFICATE-----
+
+local cert = assert(x509.new([[-----BEGIN CERTIFICATE-----
 ...
 -----END CERTIFICATE-----]]))
+local st = assert(store.new())
+assert(st:add(cert))
 -- OR
 -- assert(st:use_default()) to load default CA bundle
+
 tls.set_upstream_trusted_store(st.ctx)
 tls.set_upstream_ssl_verify(true)
 ```
